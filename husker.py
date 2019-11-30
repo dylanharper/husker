@@ -4,9 +4,11 @@ All data processing for DOTUFP is done through these functions.
 """
 
 from google.cloud import storage
+from dateutil.parser import parse
 import pandas as pd
 import json
 import io
+
 
 def _download_blob_as_str(blob_name: str):
     storage_client = storage.Client()
@@ -47,7 +49,7 @@ def twitter_faves(blob_name: str):
                        'retweet_count': tweet['retweet_count'],
                        'favorite_count': tweet['favorite_count']}
 
-        output_blob_name = f'{prefix}/{storage_key}/{tweet['id']}.{collected_timestamp}.json'
+        output_blob_name = f'{prefix}/{storage_key}/{tweet["id"]}.{collected_timestamp}.json'
 
         _upload_data('dotufp-data', output_blob_name, json.dumps(output_data))
 
