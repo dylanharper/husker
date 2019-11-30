@@ -12,7 +12,9 @@ def _download_blob_as_str(blob_name: str):
     storage_client = storage.Client()
     bucket = storage_client.bucket('dotufp-raw')
     blob = bucket.blob(blob_name)
-    ciphertext = blob.download_as_string()
+    text = blob.download_as_string()
+
+    return text
 
 def _upload_data(bucket_name: str, blob_name: str, data: str):
     storage_client = storage.Client()
@@ -30,7 +32,7 @@ def planets_data_eu(blob_name: str):
     num_planets = planets_data.shape[0]
 
     output_data = {'husker_processor': 'planets_data_eu',
-                             'husker_data_version': '0.1.0',
+                             'husker_data_version': '0',
                              'data_source': 'The ExtrasolarPlanets Encyclopaedia',
                              'num_planets': num_planets}
 
@@ -46,7 +48,7 @@ def planets_data_nasa(blob_name: str):
     num_planets = planets_data.shape[0]
 
     output_data = {'husker_processor': 'planets_data_nasa',
-                             'husker_data_version': '0.1.0',
+                             'husker_data_version': '0',
                              'data_source': 'NASA Exoplanet Archive',
                              'num_planets': num_planets}
 
