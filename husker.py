@@ -72,6 +72,7 @@ def planets_data_eu(blob_name: str):
     output_blob_name = blob_name.replace('.raw', '.json')
 
     _upload_data('dotufp-data', output_blob_name, json.dumps(output_data))
+    _upload_data('dotufp-data', 'web_scrape/planets_data_eu/_most_recent.json', json.dumps(output_data))
 
 def planets_data_nasa(blob_name: str):
     """Process raw response data from the NASA exoplanet archive."""
@@ -92,3 +93,4 @@ def planets_data_nasa(blob_name: str):
     output_blob_name = blob_name.replace('.raw', '.json')
 
     _upload_data('dotufp-data', output_blob_name, json.dumps(output_data))
+    _upload_data('dotufp-data', 'web_scrape/planets_data_nasa/_most_recent.json', json.dumps(output_data))
