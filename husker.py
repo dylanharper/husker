@@ -4,8 +4,10 @@ All data processing for DOTUFP is done through these functions.
 """
 
 from google.cloud import storage
+from google.cloud import kms_v1
 from dateutil.parser import parse
 import pandas as pd
+import redis
 import json
 import io
 
@@ -25,6 +27,36 @@ def _upload_data(bucket_name: str, blob_name: str, data: str):
 
     blob.upload_from_string(data)
 
+def _update_redis(key: str, value: str):
+    secrets = _get_secrets()
+
+    r = redis.Redis(host=secrets['redis']['host'],
+                    port=secrets['redis']['port'],
+                    password=secrets['redis']['password'])
+
+    current_value = r.get(key)
+
+    if int(current_value) <= int(value) <= 1.1 * int(current_value):
+        r.set(key, value)
+        print(f'{key} is now {value}')
+    else:
+        raise ValueError(f'new {key} is maybe {value}, current value is {current_value}')
+
+
+def _get_secrets():
+    """Fetch and decrypt project secrets."""
+    # get encrypted secrets
+    storage_client = storage.Client()
+    bucket = storage_client.bucket('dotufp-sm')
+    blob = bucket.blob('vaqmr-secrets.v3.json.encrypted')
+    ciphertext = blob.download_as_string()
+
+    # decrypt secrets
+    kms_client = kms_v1.KeyManagementServiceClient()
+    key_name = kms_client.crypto_key_path('secret-manager-258521', 'global', 'dotufp-secrets', 'dotufp-secrets-key')
+    secrets = kms_client.decrypt(key_name, ciphertext)
+
+    return json.loads(secrets.plaintext)
 
 def twitter_faves(blob_name: str):
     """Process raw response data from the catalog at exoplanet.eu."""
@@ -72,7 +104,7 @@ def planets_data_eu(blob_name: str):
     output_blob_name = blob_name.replace('.raw', '.json')
 
     _upload_data('dotufp-data', output_blob_name, json.dumps(output_data))
-    _upload_data('dotufp-data', 'web_scrape/planets_data_eu/_most_recent.json', json.dumps(output_data))
+    _update_redis('planets_data_eu', json.dumps(num_planets))
 
 def planets_data_nasa(blob_name: str):
     """Process raw response data from the NASA exoplanet archive."""
@@ -93,4 +125,4 @@ def planets_data_nasa(blob_name: str):
     output_blob_name = blob_name.replace('.raw', '.json')
 
     _upload_data('dotufp-data', output_blob_name, json.dumps(output_data))
-    _upload_data('dotufp-data', 'web_scrape/planets_data_nasa/_most_recent.json', json.dumps(output_data))
+    _update_redis('planets_data_nasa', json.dumps(num_planets))
