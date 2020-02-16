@@ -20,12 +20,14 @@ def _download_blob_as_str(blob_name: str):
 
     return text
 
+
 def _upload_data(bucket_name: str, blob_name: str, data: str):
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_name)
 
     blob.upload_from_string(data)
+
 
 def _update_redis(key: str, value: str):
     secrets = _get_secrets()
@@ -34,7 +36,7 @@ def _update_redis(key: str, value: str):
                     port=secrets['redis']['port'],
                     password=secrets['redis']['password'])
 
-    current_value = r.get(key)
+    current_value = str(r.get(key))
 
     if int(current_value) <= int(value) <= 1.1 * int(current_value):
         r.set(key, value)
@@ -57,6 +59,7 @@ def _get_secrets():
     secrets = kms_client.decrypt(key_name, ciphertext)
 
     return json.loads(secrets.plaintext)
+
 
 def twitter_faves(blob_name: str):
     """Process raw response data from the catalog at exoplanet.eu."""
@@ -85,9 +88,10 @@ def twitter_faves(blob_name: str):
 
         _upload_data('dotufp-data', output_blob_name, json.dumps(output_data))
 
+
 def planets_data_eu(blob_name: str):
     """Process raw response data from the catalog at exoplanet.eu."""
-    prefix, storage_key, file_name = blob_name.split('/')
+    _, _, file_name = blob_name.split('/')
     collected_timestamp = file_name.split('.')[0]
 
     raw_str = _download_blob_as_str(blob_name)
@@ -106,9 +110,10 @@ def planets_data_eu(blob_name: str):
     _upload_data('dotufp-data', output_blob_name, json.dumps(output_data))
     _update_redis('planets_data_eu', json.dumps(num_planets))
 
+
 def planets_data_nasa(blob_name: str):
     """Process raw response data from the NASA exoplanet archive."""
-    prefix, storage_key, file_name = blob_name.split('/')
+    _, _, file_name = blob_name.split('/')
     collected_timestamp = file_name.split('.')[0]
 
     raw_str = _download_blob_as_str(blob_name)

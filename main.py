@@ -2,7 +2,8 @@
 
 import husker
 
-def husker_worker(data, context):
+
+def husker_worker(data, _):
     """Background Cloud Function to be triggered by Cloud Storage.
 
     Args:
@@ -14,7 +15,7 @@ def husker_worker(data, context):
     """
     blob_name = data['name']
     print(f'Blob: {blob_name}')
-    prefix, storage_key, file_name = blob_name.split('/')
+    prefix, storage_key, _ = blob_name.split('/')
 
     if prefix == 'web_scrape':
         if storage_key == 'planets_data_eu':
