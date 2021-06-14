@@ -14,7 +14,7 @@ Test locally:
 import main
 
 blob_name = 'twitter_faves/dotufp/2019-11-17T05:35:26.raw'
-main.husker_work(data={'name': blob_name}, context='context')
+main.husker_worker(data={'name': blob_name}, context='context')
 ```
 
 - check output in gs://dotufp-data/
